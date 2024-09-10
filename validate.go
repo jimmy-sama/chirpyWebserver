@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 )
 
@@ -13,7 +14,9 @@ func handlerChirpsValidate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	type returnVals struct {
-		CleanBody string `json:"cleaned_body"`
+		Id   int    `json:"id"`
+		Body string `json:"body"`
+		File int    `json:"file"`
 	}
 
 	decoder := json.NewDecoder(r.Body)
@@ -37,9 +40,12 @@ func handlerChirpsValidate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cleaned := getCleanedBody(params.Body, badWords)
+	fileContent, _ := handleDatabaseFile()
 
-	respondWithJSON(w, http.StatusOK, returnVals{
-		CleanBody: cleaned,
+	respondWithJSON(w, http.StatusCreated, returnVals{
+		Id:   1,
+		Body: cleaned,
+		File: fileContent,
 	})
 }
 
@@ -76,4 +82,12 @@ func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
 	}
 	w.WriteHeader(code)
 	w.Write(dat)
+}
+
+func handleDatabaseFile() (int, error) {
+	data, err := os.ReadFile("database.json")
+	if err != nil {
+		log.Fatal(err)
+	}
+	return os.Stdout.Write(data)
 }
