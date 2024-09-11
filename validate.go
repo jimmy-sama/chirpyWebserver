@@ -8,6 +8,15 @@ import (
 	"strings"
 )
 
+type DBStructure struct {
+	Chirps map[int]Chirp `json:"chirps"`
+}
+
+type Chirp struct {
+	Id   int    `json:"id"`
+	Body string `json:"body"`
+}
+
 func handlerChirpsValidate(w http.ResponseWriter, r *http.Request) {
 	type parameters struct {
 		Body string `json:"body"`
@@ -16,7 +25,6 @@ func handlerChirpsValidate(w http.ResponseWriter, r *http.Request) {
 	type returnVals struct {
 		Id   int    `json:"id"`
 		Body string `json:"body"`
-		File int    `json:"file"`
 	}
 
 	decoder := json.NewDecoder(r.Body)
@@ -40,13 +48,9 @@ func handlerChirpsValidate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cleaned := getCleanedBody(params.Body, badWords)
-	fileContent, _ := handleDatabaseFile()
+	fileContent := handleDatabaseFile()
 
-	respondWithJSON(w, http.StatusCreated, returnVals{
-		Id:   1,
-		Body: cleaned,
-		File: fileContent,
-	})
+	respondWithJSON(w, http.StatusCreated, fileContent)
 }
 
 func getCleanedBody(body string, badWords map[string]struct{}) string {
@@ -84,10 +88,15 @@ func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
 	w.Write(dat)
 }
 
-func handleDatabaseFile() (int, error) {
+func handleDatabaseFile() []Chirp {
+
 	data, err := os.ReadFile("database.json")
 	if err != nil {
 		log.Fatal(err)
 	}
-	return os.Stdout.Write(data)
+	var chirps []Chirp
+	if err = json.Unmarshal(data, &chirps); err != nil {
+		log.Println(err)
+	}
+	return chirps
 }

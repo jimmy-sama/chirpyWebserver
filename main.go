@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/jimmy-sama/chirpyWebserver/internal/database"
 	"log"
 	"net/http"
 )
